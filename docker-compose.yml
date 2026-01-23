@@ -1,9 +1,11 @@
 services:
   heartmula:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    image: heartmula-studio:latest
+    # Use pre-built image from GitHub Container Registry (faster)
+    image: ghcr.io/fspecii/heartmula-studio:latest
+    # Or build locally: uncomment the lines below and comment out the image line above
+    # build:
+    #   context: .
+    #   dockerfile: Dockerfile
     container_name: heartmula-studio
 
     # GPU access - requires NVIDIA Container Toolkit
