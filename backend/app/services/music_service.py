@@ -250,18 +250,21 @@ class MusicService:
 
         # Multi-GPU setup
         logger.info(f"Found {num_gpus} GPUs:")
-        gpu_memories = {}
+        gpu_info = {}
         for i in range(num_gpus):
-            mem = get_gpu_memory(i)
-            gpu_memories[i] = mem
-            logger.info(f"  GPU {i}: {torch.cuda.get_device_name(i)} ({mem:.1f} GB)")
+            props = torch.cuda.get_device_properties(i)
+            mem = props.total_memory / (1024 ** 3)
+            compute_cap = props.major + props.minor / 10
+            gpu_info[i] = {"mem": mem, "compute": compute_cap, "name": props.name}
+            logger.info(f"  GPU {i}: {props.name} ({mem:.1f} GB, SM {props.major}.{props.minor})")
 
-        # Put HeartMuLa on larger GPU (needs more VRAM), HeartCodec on smaller GPU
-        mula_gpu = max(gpu_memories, key=gpu_memories.get)
-        codec_gpu = min(gpu_memories, key=gpu_memories.get)
+        # Prioritize compute capability for HeartMuLa (faster inference with Flash Attention)
+        # Put HeartMuLa on fastest GPU, HeartCodec on the other
+        mula_gpu = max(gpu_info, key=lambda x: gpu_info[x]["compute"])
+        codec_gpu = min(gpu_info, key=lambda x: gpu_info[x]["compute"])
 
-        print(f"[GPU Setup] HeartMuLa -> GPU {mula_gpu} ({gpu_memories[mula_gpu]:.1f} GB)", flush=True)
-        print(f"[GPU Setup] HeartCodec -> GPU {codec_gpu} ({gpu_memories[codec_gpu]:.1f} GB)", flush=True)
+        print(f"[GPU Setup] HeartMuLa -> GPU {mula_gpu}: {gpu_info[mula_gpu]['name']} ({gpu_info[mula_gpu]['mem']:.1f} GB, SM {gpu_info[mula_gpu]['compute']})", flush=True)
+        print(f"[GPU Setup] HeartCodec -> GPU {codec_gpu}: {gpu_info[codec_gpu]['name']} ({gpu_info[codec_gpu]['mem']:.1f} GB)", flush=True)
 
         # Configure Flash Attention based on the GPU running HeartMuLa
         configure_flash_attention_for_gpu(mula_gpu)
