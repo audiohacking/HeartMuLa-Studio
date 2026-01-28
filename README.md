@@ -169,6 +169,27 @@ Download the latest macOS release from the [Releases](https://github.com/audioha
 3. Double-click to launch (macOS may show a security warning on first run)
 4. If prompted, go to System Preferences → Security & Privacy → Click "Open Anyway"
 
+### Data Storage
+
+**All data is stored in your user Library folder**, not in the app bundle:
+
+```
+~/Library/Application Support/HeartMuLa/
+├── models/              # AI models (~5GB, auto-downloaded)
+├── generated_audio/     # Your generated music files
+├── ref_audio/           # Uploaded reference audio
+└── jobs.db              # Song history database
+
+~/Library/Logs/HeartMuLa/
+└── (application logs)
+```
+
+This ensures:
+- ✅ App bundle remains read-only (code signing compatible)
+- ✅ Your data persists across app updates
+- ✅ Easy to find and manage your generated music
+- ✅ Standard macOS app behavior
+
 ### Features
 
 - **Standalone App**: No Python or Node.js installation required
