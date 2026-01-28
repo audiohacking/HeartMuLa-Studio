@@ -15,7 +15,6 @@ from pathlib import Path
 import socket
 import urllib.request
 import urllib.error
-import signal
 import atexit
 
 # Single instance lock port
@@ -24,7 +23,7 @@ SINGLE_INSTANCE_PORT = 58765
 # Global references for cleanup
 _server_thread = None
 _lock_socket = None
-_uvicorn_server = None
+_cleanup_done = False
 
 def setup_environment():
     """Set up the macOS app environment."""
@@ -82,8 +81,13 @@ def check_single_instance():
         return None
 
 def cleanup():
-    """Cleanup resources on shutdown."""
-    global _lock_socket, _uvicorn_server
+    """Cleanup resources on shutdown. Idempotent - safe to call multiple times."""
+    global _lock_socket, _cleanup_done
+    
+    # Prevent multiple cleanup calls
+    if _cleanup_done:
+        return
+    _cleanup_done = True
     
     print("\nCleaning up resources...")
     
@@ -92,7 +96,7 @@ def cleanup():
         try:
             _lock_socket.close()
             print("✓ Released instance lock")
-        except:
+        except (OSError, Exception):
             pass
     
     # Note: Server thread is daemon and will be terminated automatically
@@ -150,8 +154,8 @@ def launch_server(app_dir, logs_dir):
         import webview
         print("Opening HeartMuLa Studio window...")
         
-        # Create window with custom settings
-        window = webview.create_window(
+        # Create window with custom settings - window object not needed
+        webview.create_window(
             'HeartMuLa Studio',
             'http://127.0.0.1:8000',
             width=1400,
@@ -165,16 +169,15 @@ def launch_server(app_dir, logs_dir):
             focus=True     # Get focus on creation
         )
         
-        # Register cleanup handler
+        # Register cleanup handler for graceful shutdown
         atexit.register(cleanup)
         
         # Start the webview - this blocks until window is closed
-        # When window closes, this returns and the program continues to cleanup
+        # When window closes, this returns and the program continues to exit
         webview.start(gui='cocoa')  # Explicitly use Cocoa for macOS
         
-        # Window has been closed, trigger cleanup and exit
+        # Window has been closed by user
         print("\nWindow closed by user")
-        cleanup()
         
     except ImportError:
         print("Warning: pywebview not available, falling back to browser")
@@ -208,17 +211,16 @@ def main():
         launch_server(app_dir, logs_dir)
         
         # If we reach here, the window was closed gracefully
+        # cleanup() will be called by atexit
         sys.exit(0)
         
     except KeyboardInterrupt:
         print("\nShutting down HeartMuLa Studio...")
-        cleanup()
         sys.exit(0)
     except Exception as e:
         print(f"Error starting HeartMuLa Studio: {e}")
         import traceback
         traceback.print_exc()
-        cleanup()
         sys.exit(1)
 
 if __name__ == "__main__":
