@@ -716,6 +716,9 @@ def patch_pipeline_with_callback(pipeline: HeartMuLaGenPipeline, sequential_offl
         topk = kwargs.get("topk", 50)
         save_path = kwargs.get("save_path", "output.mp3")
 
+        # Log device info for debugging
+        print(f"[Generation] Starting generation on device: {pipeline.mula_device} (dtype: {pipeline.mula_dtype})", flush=True)
+        
         # Preprocess
         model_inputs = pipeline.preprocess(inputs, cfg_scale=cfg_scale)
 
@@ -1519,6 +1522,9 @@ class MusicService:
             
             try:
                 # MPS doesn't support bfloat16, use float32 instead
+                # IMPORTANT: For MPS, we need to use float16 (not float32) for optimal performance
+                # MPS has native support for float16 operations which are much faster than float32
+                print("[Apple Metal] Loading models with float16 precision for optimal MPS performance", flush=True)
                 pipeline = HeartMuLaGenPipeline.from_pretrained(
                     model_path,
                     device={
@@ -1526,11 +1532,41 @@ class MusicService:
                         "codec": torch.device("mps"),
                     },
                     dtype={
-                        "mula": torch.float32,
-                        "codec": torch.float32,
+                        "mula": torch.float16,  # Use float16 for MPS acceleration
+                        "codec": torch.float16,  # Use float16 for MPS acceleration
                     },
                     version=version,
                 )
+                
+                # Verify models are on MPS and explicitly set device attributes
+                mps_device = torch.device("mps")
+                
+                # Ensure pipeline device attributes are set correctly
+                pipeline.mula_device = mps_device
+                pipeline.codec_device = mps_device
+                pipeline.mula_dtype = torch.float16
+                pipeline.codec_dtype = torch.float16
+                
+                if hasattr(pipeline, '_mula') and pipeline._mula is not None:
+                    mula_device = next(pipeline._mula.parameters()).device
+                    print(f"[Apple Metal] HeartMuLa model device: {mula_device}", flush=True)
+                    if mula_device.type != 'mps':
+                        logger.warning(f"[MPS] HeartMuLa model is on {mula_device}, not MPS! This will be slow.")
+                        print(f"[Apple Metal] WARNING: HeartMuLa is on {mula_device}, moving to MPS...", flush=True)
+                        pipeline._mula = pipeline._mula.to(mps_device)
+                        print(f"[Apple Metal] HeartMuLa moved to MPS", flush=True)
+                
+                if hasattr(pipeline, '_codec') and pipeline._codec is not None:
+                    codec_device = next(pipeline._codec.parameters()).device
+                    print(f"[Apple Metal] HeartCodec model device: {codec_device}", flush=True)
+                    if codec_device.type != 'mps':
+                        logger.warning(f"[MPS] HeartCodec model is on {codec_device}, not MPS! This will be slow.")
+                        print(f"[Apple Metal] WARNING: HeartCodec is on {codec_device}, moving to MPS...", flush=True)
+                        pipeline._codec = pipeline._codec.to(mps_device)
+                        print(f"[Apple Metal] HeartCodec moved to MPS", flush=True)
+                
+                print("[Apple Metal] MPS pipeline loaded successfully with float16 precision", flush=True)
+                print("[Apple Metal] All models are on MPS device for hardware acceleration", flush=True)
                 return patch_pipeline_with_callback(pipeline, sequential_offload=False)
             finally:
                 # Restore original function if we patched it
