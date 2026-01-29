@@ -41,21 +41,21 @@ Ensured that lazy-loaded models (like HeartCodec) use the same dtype as the pipe
 
 ### Changes Made
 
-1. **`backend/app/services/music_service.py`** (lines 19-27):
+1. **`backend/app/services/music_service.py`** (top of file):
    - Added MPS configuration at module import time
    - Set `PYTORCH_ENABLE_MPS_FALLBACK=1` environment variable
 
-2. **Model Loading** (lines 1521-1565):
+2. **Model Loading** (MPS pipeline initialization):
    - Changed from `torch.float32` to `torch.float16` for MPS
    - Added device verification after model loading
    - Explicitly set pipeline attributes: `mula_device`, `codec_device`, `mula_dtype`, `codec_dtype`
    - Added automatic device correction if models are on wrong device
 
-3. **Lazy Codec Loading** (lines 813-829):
+3. **Lazy Codec Loading** (codec loading function):
    - Use `pipeline.codec_dtype` instead of hardcoded `torch.float32`
    - Added MPS-specific logging
 
-4. **Generation Logging** (line 731):
+4. **Generation Logging** (generation start):
    - Added diagnostic logging to show device and dtype at generation start
 
 ### Performance Impact
