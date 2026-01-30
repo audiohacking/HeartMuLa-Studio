@@ -846,7 +846,8 @@ def patch_pipeline_with_callback(pipeline: HeartMuLaGenPipeline, sequential_offl
 
         # Move frames to codec device (keep dtype as long for indexing)
         # frames contains token IDs (integers) used as indices, so dtype must remain long
-        frames_for_codec = frames.to(device=pipeline.codec_device)
+        # Explicitly preserve torch.long dtype when moving to device (critical for MPS)
+        frames_for_codec = frames.to(device=pipeline.codec_device, dtype=torch.long)
         wav = pipeline.codec.detokenize(frames_for_codec)
 
         # Cleanup codec if using lazy loading (free VRAM for next generation)
