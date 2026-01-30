@@ -804,7 +804,9 @@ def patch_pipeline_with_callback(pipeline: HeartMuLaGenPipeline, sequential_offl
                 progress = int((i + 1) / max_audio_frames * 100)
                 callback(progress, f"Generating audio... {i + 1}/{max_audio_frames} frames")
 
-        frames = torch.stack(frames).permute(1, 2, 0).squeeze(0).cpu()  # Move to CPU immediately
+        # Stack frames and explicitly preserve torch.long dtype (critical for MPS compatibility)
+        # torch.stack may promote dtype to float on MPS, so we explicitly convert to long before CPU
+        frames = torch.stack(frames).permute(1, 2, 0).squeeze(0).to(dtype=torch.long).cpu()
 
         # Sequential offload: Move HeartMuLa to CPU before loading HeartCodec
         # This allows fitting on smaller GPUs (12GB) by never having both models in VRAM
