@@ -181,8 +181,8 @@ def launch_server(app_dir, logs_dir):
         import webview
         print("Opening HeartMuLa Studio window...")
         
-        # Create window with custom settings - window object not needed
-        webview.create_window(
+        # Create window and keep reference so we can treat close-as-quit
+        window = webview.create_window(
             'HeartMuLa Studio',
             'http://127.0.0.1:8000',
             width=1400,
@@ -196,14 +196,27 @@ def launch_server(app_dir, logs_dir):
             focus=True     # Get focus on creation
         )
         
-        # Register cleanup handler for graceful shutdown
+        # On macOS, closing the window (red X) does not quit the app by default;
+        # the Cocoa run loop keeps running and the app can "reopen". Treat window
+        # close as an explicit quit: cleanup and exit so we don't respawn.
+        if window is not None:
+            def on_window_closed():
+                print("\nWindow closed by user — quitting.")
+                cleanup()
+                os._exit(0)
+            try:
+                window.events.closed += on_window_closed
+            except Exception:
+                pass  # older pywebview may not have events.closed
+        
+        # Register cleanup handler for graceful shutdown (e.g. Dock Quit, SIGTERM)
         atexit.register(cleanup)
         
-        # Start the webview - this blocks until window is closed
-        # When window closes, this returns and the program continues to exit
+        # Start the webview - this blocks until the GUI run loop exits
+        # When window is closed, on_window_closed() runs and we os._exit(0)
         webview.start(gui='cocoa')  # Explicitly use Cocoa for macOS
         
-        # Window has been closed by user
+        # If start() returns without on_window_closed firing (e.g. other backends)
         print("\nWindow closed by user")
         
     except ImportError:
