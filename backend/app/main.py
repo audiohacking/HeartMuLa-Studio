@@ -87,20 +87,35 @@ app.mount("/ref_audio", StaticFiles(directory=REF_AUDIO_DIR), name="ref_audio")
 
 # --- Routes ---
 
+# Reference audio: formats heartlib/torchaudio use (mp3, wav, flac, ogg)
+REF_AUDIO_ALLOWED_MIMES = [
+    "audio/mpeg", "audio/mp3", "audio/wav", "audio/x-wav",
+    "audio/flac", "audio/ogg", "audio/vorbis",
+]
+REF_AUDIO_ALLOWED_EXTENSIONS = {".mp3", ".wav", ".flac", ".ogg"}
+
+
 @app.post("/upload/ref_audio")
 async def upload_ref_audio(file: UploadFile = File(...)):
     """Upload a reference audio file for style conditioning."""
-    # Validate file type
-    allowed_types = ["audio/mpeg", "audio/mp3", "audio/wav", "audio/x-wav", "audio/flac", "audio/ogg"]
-    if file.content_type and file.content_type not in allowed_types:
-        raise HTTPException(status_code=400, detail=f"Invalid file type: {file.content_type}. Allowed: mp3, wav, flac, ogg")
+    original_name = file.filename or "audio.mp3"
+    ext = (os.path.splitext(original_name)[1] or ".mp3").lower()
+
+    # Validate: allow by MIME type or by extension (some clients omit Content-Type)
+    if file.content_type and file.content_type not in REF_AUDIO_ALLOWED_MIMES:
+        if ext not in REF_AUDIO_ALLOWED_EXTENSIONS:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Invalid file type: {file.content_type or ext}. Allowed: mp3, wav, flac, ogg",
+            )
+    if ext not in REF_AUDIO_ALLOWED_EXTENSIONS:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid file extension: {ext}. Allowed: .mp3, .wav, .flac, .ogg",
+        )
 
     # Generate unique ID for the file
     file_id = str(uuid_module.uuid4())
-
-    # Get file extension
-    original_name = file.filename or "audio.mp3"
-    ext = os.path.splitext(original_name)[1] or ".mp3"
 
     # Save file
     file_path = os.path.join(REF_AUDIO_DIR, f"{file_id}{ext}")

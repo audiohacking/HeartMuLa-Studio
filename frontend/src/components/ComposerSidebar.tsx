@@ -669,7 +669,6 @@ export const ComposerSidebar: React.FC<ComposerSidebarProps> = ({
                             type="file"
                             ref={fileInputRef}
                             onChange={handleRefAudioUpload}
-                            accept="audio/*"
                             className="hidden"
                         />
                         {refAudio ? (
