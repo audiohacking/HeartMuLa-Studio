@@ -29,7 +29,7 @@
 
 ## About this fork
 
-This repository is a **fork of HeartMuLa Studio** focused on **Apple MPS (Metal Performance Shaders)** and **M-Series (and Intel) Macs**. It removes CUDA/Windows-specific optimizations and emphasizes:
+This repository is a **fork of HeartMuLa Studio** focused on **Apple MPS (Metal Performance Shaders)**
 
 - **Native macOS app** — Standalone `.app` with native window (pywebview/Cocoa)
 - **MPS-accelerated inference** — HeartMuLa and HeartCodec run on Metal where supported
@@ -215,33 +215,6 @@ OLLAMA_HOST=http://localhost:11434    # Local LLM
 | `HEARTMULA_4BIT` | `auto` | 4-bit quantization: `auto`, `true`, `false` |
 | `HEARTMULA_SEQUENTIAL_OFFLOAD` | `auto` | Model swapping for low RAM: `auto`, `true`, `false` |
 | `HEARTMULA_VERSION` | `RL-3B-20260123` | Model version |
-
----
-
-## Project structure
-
-```
-HeartMuLa-Studio/
-├── backend/
-│   ├── app/
-│   │   ├── main.py
-│   │   ├── models.py
-│   │   └── services/
-│   │       ├── music_service.py   # HeartLib + MPS
-│   │       └── llm_service.py
-│   ├── generated_audio/
-│   ├── ref_audio/
-│   └── requirements.txt
-├── frontend/
-│   ├── src/
-│   │   ├── components/
-│   │   ├── App.tsx
-│   │   └── api.ts
-│   └── package.json
-├── launcher.py          # macOS app entry (pywebview)
-├── MPS_OPTIMIZATION.md   # MPS notes and patches
-└── README.md
-```
 
 ---
 
