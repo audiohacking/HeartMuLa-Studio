@@ -1,5 +1,5 @@
 # -*- mode: python ; coding: utf-8 -*-
-# PyInstaller spec file for HeartMuLa Studio macOS App
+# PyInstaller spec file for CTFN Studio macOS App
 
 import os
 import sys
@@ -96,13 +96,13 @@ app = BUNDLE(
     coll,
     name=f'{app_name}.app',
     icon='build/macos/HeartMuLa.icns',
-    bundle_identifier='com.audiohacking.heartmula',
+    bundle_identifier='com.audiohacking.ctfn',
     version='0.1.0',
     info_plist={
-        'CFBundleName': 'HeartMuLa Studio',
-        'CFBundleDisplayName': 'HeartMuLa Studio',
+        'CFBundleName': 'CTFN Studio',
+        'CFBundleDisplayName': 'CTFN Studio',
         'CFBundleExecutable': app_name,
-        'CFBundleIdentifier': 'com.audiohacking.heartmula',
+        'CFBundleIdentifier': 'com.audiohacking.ctfn',
         'CFBundleVersion': '0.1.0',
         'CFBundleShortVersionString': '0.1.0',
         'NSHighResolutionCapable': True,
@@ -111,7 +111,7 @@ app = BUNDLE(
         'NSAppTransportSecurity': {
             'NSAllowsArbitraryLoads': True
         },
-        'NSMicrophoneUsageDescription': 'HeartMuLa Studio needs access to the microphone for audio input.',
+        'NSMicrophoneUsageDescription': 'CTFN Studio needs access to the microphone for audio input.',
         'LSApplicationCategoryType': 'public.app-category.music',
     },
 )

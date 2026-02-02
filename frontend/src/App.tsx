@@ -11,7 +11,7 @@ import { AddToPlaylistModal } from './components/AddToPlaylistModal';
 import { StartupScreen } from './components/StartupScreen';
 import { SettingsModal } from './components/SettingsModal';
 import { Moon, Sun, PanelRightOpen, PanelLeftClose, PanelLeftOpen, Heart, ListMusic, Home, Plus, X, Settings } from 'lucide-react';
-import { HeartMuLaLogo } from './components/HeartMuLaLogo';
+import { CTFNLogo } from './components/CTFNLogo';
 
 type ActiveSection = 'home' | 'favourites' | 'playlists';
 
@@ -463,8 +463,8 @@ function App() {
               {sidebarCollapsed ? <PanelLeftOpen className="w-5 h-5" /> : <PanelLeftClose className="w-5 h-5" />}
             </button>
           )}
-          <HeartMuLaLogo size={28} showText className="hidden sm:flex" darkMode={darkMode} />
-          <HeartMuLaLogo size={28} showText={false} className="sm:hidden" darkMode={darkMode} />
+          <CTFNLogo size={28} showText className="hidden sm:flex" darkMode={darkMode} />
+          <CTFNLogo size={28} showText={false} className="sm:hidden" darkMode={darkMode} />
         </div>
 
         {/* Center: Navigation Tabs */}

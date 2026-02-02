@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-HeartMuLa Studio macOS Launcher
+CTFN Studio macOS Launcher
 This script is the entry point for the PyInstaller-bundled macOS app.
 It sets up the environment and launches the FastAPI server with the frontend.
 """
@@ -38,11 +38,11 @@ def setup_environment():
     
     # Set up paths for the app - ALL data goes to user's Library directory
     home_dir = Path.home()
-    app_support_dir = home_dir / "Library" / "Application Support" / "HeartMuLa"
+    app_support_dir = home_dir / "Library" / "Application Support" / "CTFN"
     models_dir = app_support_dir / "models"
     generated_audio_dir = app_support_dir / "generated_audio"
     ref_audio_dir = app_support_dir / "ref_audio"
-    logs_dir = home_dir / "Library" / "Logs" / "HeartMuLa"
+    logs_dir = home_dir / "Library" / "Logs" / "CTFN"
     
     # Create directories
     for directory in [app_support_dir, models_dir, generated_audio_dir, ref_audio_dir, logs_dir]:
@@ -158,7 +158,7 @@ def launch_server(app_dir, logs_dir):
     
     # Run the server in a thread so pywebview can take control of main thread
     def run_server():
-        print(f"Starting HeartMuLa Studio server...")
+        print(f"Starting CTFN Studio server...")
         print(f"Logs directory: {logs_dir}")
         print(f"Console log file: {log_file_path}")
         
@@ -179,11 +179,11 @@ def launch_server(app_dir, logs_dir):
     # Launch pywebview window
     try:
         import webview
-        print("Opening HeartMuLa Studio window...")
+        print("Opening CTFN Studio window...")
         
         # Create window and keep reference so we can treat close-as-quit
         window = webview.create_window(
-            'HeartMuLa Studio',
+            'CTFN Studio',
             'http://127.0.0.1:8000',
             width=1400,
             height=900,
@@ -251,7 +251,7 @@ def main():
         # Check if another instance is already running
         _lock_socket = check_single_instance()
         if _lock_socket is None:
-            print("Another instance of HeartMuLa Studio is already running.")
+            print("Another instance of CTFN Studio is already running.")
             print("Only one instance can be opened at a time.")
             sys.exit(0)
         
@@ -263,10 +263,10 @@ def main():
         sys.exit(0)
         
     except KeyboardInterrupt:
-        print("\nShutting down HeartMuLa Studio...")
+        print("\nShutting down CTFN Studio...")
         sys.exit(0)
     except Exception as e:
-        print(f"Error starting HeartMuLa Studio: {e}")
+        print(f"Error starting CTFN Studio: {e}")
         import traceback
         traceback.print_exc()
         sys.exit(1)

@@ -1,4 +1,4 @@
-import { HeartMuLaLogo } from './HeartMuLaLogo';
+import { CTFNLogo } from './CTFNLogo';
 import type { StartupStatus, GPUStatus } from '../api';
 
 interface StartupScreenProps {
@@ -53,7 +53,7 @@ export function StartupScreen({ status, darkMode, gpuStatus }: StartupScreenProp
                 <div className={`mb-8 transform transition-transform duration-1000 ${
                     currentStatus === 'ready' ? 'scale-110' : 'scale-100'
                 }`}>
-                    <HeartMuLaLogo
+                    <CTFNLogo
                         size={80}
                         showText={false}
                         darkMode={darkMode}
@@ -65,7 +65,7 @@ export function StartupScreen({ status, darkMode, gpuStatus }: StartupScreenProp
                 <h1 className={`text-2xl font-bold mb-2 ${
                     darkMode ? 'text-white' : 'text-slate-900'
                 }`}>
-                    HeartMuLa Studio
+                    CTFN Studio
                 </h1>
 
                 {/* Status Label */}

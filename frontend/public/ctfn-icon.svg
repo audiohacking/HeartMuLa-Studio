@@ -1,0 +1,36 @@
+<svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background with gradient -->
+  <rect width="200" height="200" fill="url(#ctfn-gradient)" rx="20"/>
+  
+  <!-- CTFN Text -->
+  <g transform="translate(30, 70)">
+    <!-- C -->
+    <path d="M10 15 Q5 15 5 20 L5 45 Q5 50 10 50 L25 50" stroke="#FFF" stroke-width="8" stroke-linecap="round" fill="none"/>
+    
+    <!-- T -->
+    <path d="M35 15 L55 15 M45 15 L45 50" stroke="#FFF" stroke-width="8" stroke-linecap="round"/>
+    
+    <!-- F -->
+    <path d="M65 15 L65 50 M65 15 L80 15 M65 32 L77 32" stroke="#FFF" stroke-width="8" stroke-linecap="round"/>
+    
+    <!-- N -->
+    <path d="M90 50 L90 15 L110 50 L110 15" stroke="#FFF" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+  
+  <!-- Colorful decorative elements -->
+  <circle cx="30" cy="30" r="8" fill="#FFD700"/>
+  <circle cx="170" cy="30" r="8" fill="#FF6B9D"/>
+  <circle cx="30" cy="170" r="8" fill="#06B6D4"/>
+  <circle cx="170" cy="170" r="8" fill="#A855F7"/>
+  
+  <!-- Gradient definitions -->
+  <defs>
+    <linearGradient id="ctfn-gradient" x1="0" y1="0" x2="200" y2="200" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#FF6B35"/>
+      <stop offset="25%" stop-color="#F7931E"/>
+      <stop offset="50%" stop-color="#A855F7"/>
+      <stop offset="75%" stop-color="#06B6D4"/>
+      <stop offset="100%" stop-color="#10B981"/>
+    </linearGradient>
+  </defs>
+</svg>
