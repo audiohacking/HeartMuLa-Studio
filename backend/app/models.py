@@ -1,5 +1,5 @@
 from datetime import datetime, timezone
-from typing import Optional
+from typing import Optional, Union
 from uuid import UUID, uuid4
 from sqlmodel import Field, SQLModel
 from enum import Enum
@@ -111,13 +111,14 @@ class AddToPlaylistRequest(SQLModel):
 class GPUInfo(SQLModel):
     index: int
     name: str
-    vram_gb: float
-    compute_capability: float
+    vram_gb: Union[float, str]  # float for CUDA VRAM, "Unified Memory" for MPS
+    compute_capability: Union[float, str]  # float for CUDA SM, "MPS" for Apple Metal
     supports_flash_attention: bool
 
 
 class GPUStatusResponse(SQLModel):
     cuda_available: bool
+    mps_available: bool = False  # Apple Metal (MPS)
     num_gpus: int
     gpus: list
     total_vram_gb: float

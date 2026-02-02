@@ -53,13 +53,14 @@ export interface StartupStatus {
 export interface GPUInfo {
     index: number;
     name: string;
-    vram_gb: number;
-    compute_capability: number;
+    vram_gb: number | string;  // number for CUDA VRAM, "Unified Memory" for MPS
+    compute_capability: number | string;
     supports_flash_attention: boolean;
 }
 
 export interface GPUStatus {
     cuda_available: boolean;
+    mps_available?: boolean;   // Apple Metal (MPS)
     num_gpus: number;
     gpus: GPUInfo[];
     total_vram_gb: number;
