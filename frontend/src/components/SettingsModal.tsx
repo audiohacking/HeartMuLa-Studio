@@ -41,7 +41,7 @@ export function SettingsModal({
         torch_compile: false,
         torch_compile_mode: 'default'
     });
-    const [ollamaPreset, setOllamaPreset] = useState('host'); // 'host', 'localhost', 'custom'
+    const [ollamaPreset, setOllamaPreset] = useState('local'); // 'local', 'custom'
     const [customOllamaUrl, setCustomOllamaUrl] = useState('');
     const [openrouterKey, setOpenrouterKey] = useState('');
     // Custom API state
@@ -49,11 +49,10 @@ export function SettingsModal({
     const [customApiKey, setCustomApiKey] = useState('');
     const [customApiModel, setCustomApiModel] = useState('');
 
-    // Ollama presets
+    // Ollama presets (local or remote; no Docker)
     const OLLAMA_PRESETS = {
-        host: { label: 'On my computer', url: 'http://host.docker.internal:11434', desc: 'Ollama installed on your machine (most common)' },
-        localhost: { label: 'Inside container', url: 'http://localhost:11434', desc: 'Ollama running inside this Docker container' },
-        custom: { label: 'Custom URL', url: '', desc: 'External server or custom setup' }
+        local: { label: 'Local (this computer)', url: 'http://localhost:11434', desc: 'Ollama on this Mac (default port 11434)' },
+        custom: { label: 'Custom URL', url: '', desc: 'Remote Ollama server or custom port' }
     };
     const [isSaving, setIsSaving] = useState(false);
     const [isSavingLLM, setIsSavingLLM] = useState(false);
@@ -76,11 +75,10 @@ export function SettingsModal({
         if (llmSettings && isOpen) {
             const currentUrl = llmSettings.ollama_host || '';
 
-            // Detect which preset matches
-            if (currentUrl === OLLAMA_PRESETS.host.url || currentUrl === '') {
-                setOllamaPreset('host');
-            } else if (currentUrl === OLLAMA_PRESETS.localhost.url) {
-                setOllamaPreset('localhost');
+            // Detect which preset matches (default: local localhost:11434)
+            const localUrl = OLLAMA_PRESETS.local.url;
+            if (!currentUrl || currentUrl === localUrl) {
+                setOllamaPreset('local');
             } else {
                 setOllamaPreset('custom');
                 setCustomOllamaUrl(currentUrl);
@@ -114,7 +112,7 @@ export function SettingsModal({
         if (llmSettings) {
             // Calculate the effective URL based on preset
             const effectiveUrl = ollamaPreset === 'custom' ? customOllamaUrl : OLLAMA_PRESETS[ollamaPreset as keyof typeof OLLAMA_PRESETS].url;
-            const hostChanged = effectiveUrl !== (llmSettings.ollama_host || OLLAMA_PRESETS.host.url);
+            const hostChanged = effectiveUrl !== (llmSettings.ollama_host || OLLAMA_PRESETS.local.url);
             const keyChanged = openrouterKey !== '' && openrouterKey !== llmSettings.openrouter_api_key;
             // Track Custom API changes
             const customBaseUrlChanged = customApiBaseUrl !== (llmSettings.custom_api_base_url || '');
@@ -151,7 +149,7 @@ export function SettingsModal({
 
             // Get effective URL from preset or custom
             const effectiveUrl = ollamaPreset === 'custom' ? customOllamaUrl : OLLAMA_PRESETS[ollamaPreset as keyof typeof OLLAMA_PRESETS].url;
-            if (effectiveUrl !== (llmSettings?.ollama_host || '')) {
+            if (effectiveUrl !== (llmSettings?.ollama_host || OLLAMA_PRESETS.local.url)) {
                 updates.ollama_host = effectiveUrl;
             }
             if (openrouterKey && openrouterKey !== llmSettings?.openrouter_api_key) {
@@ -272,186 +270,66 @@ export function SettingsModal({
 
                         {/* Content */}
                         <div className="px-6 py-4 max-h-[70vh] overflow-y-auto">
-                            {/* GPU Hardware Section */}
+                            {/* Acceleration (Apple MPS) */}
                             <div className="mb-6">
                                 <h3 className={`flex items-center gap-2 text-sm font-semibold uppercase tracking-wide mb-3 ${
                                     darkMode ? 'text-white' : 'text-slate-900'
                                 }`}>
                                     <Cpu className="w-4 h-4" />
-                                    GPU Hardware
+                                    Acceleration
                                 </h3>
                                 <div className={`p-4 rounded-lg ${
                                     darkMode ? 'bg-[#282828]' : 'bg-slate-50'
                                 }`}>
-                                    {!gpuStatus?.cuda_available ? (
-                                        <p className={darkMode ? 'text-[#b3b3b3]' : 'text-slate-600'}>
-                                            No CUDA GPU detected
-                                        </p>
-                                    ) : (
+                                    {gpuStatus?.mps_available ? (
                                         <div className="space-y-2">
-                                            {gpuStatus.gpus.map((gpu) => (
-                                                <div key={gpu.index} className="flex items-center justify-between">
-                                                    <div className="flex items-center gap-2">
-                                                        <span className={`font-medium ${
-                                                            darkMode ? 'text-white' : 'text-slate-900'
-                                                        }`}>
-                                                            GPU {gpu.index}:
-                                                        </span>
-                                                        <span className={darkMode ? 'text-[#b3b3b3]' : 'text-slate-600'}>
-                                                            {gpu.name}
-                                                        </span>
-                                                    </div>
-                                                    <div className="flex items-center gap-2">
-                                                        <span className={`text-sm px-2 py-0.5 rounded ${
-                                                            darkMode ? 'bg-[#383838] text-[#b3b3b3]' : 'bg-slate-200 text-slate-600'
-                                                        }`}>
-                                                            {gpu.vram_gb} GB
-                                                        </span>
-                                                        {gpu.supports_flash_attention && (
-                                                            <span className={`text-xs px-2 py-0.5 rounded ${
-                                                                darkMode ? 'bg-[#1DB954]/20 text-[#1DB954]' : 'bg-cyan-100 text-cyan-700'
-                                                            }`}>
-                                                                Flash OK
-                                                            </span>
-                                                        )}
-                                                    </div>
-                                                </div>
-                                            ))}
+                                            <div className="flex items-center justify-between">
+                                                <span className={`font-medium ${
+                                                    darkMode ? 'text-white' : 'text-slate-900'
+                                                }`}>
+                                                    Apple Metal (MPS)
+                                                </span>
+                                                <span className={`text-xs px-2 py-0.5 rounded ${
+                                                    darkMode ? 'bg-[#1DB954]/20 text-[#1DB954]' : 'bg-cyan-100 text-cyan-700'
+                                                }`}>
+                                                    Active
+                                                </span>
+                                            </div>
+                                            <p className={`text-sm ${darkMode ? 'text-[#b3b3b3]' : 'text-slate-600'}`}>
+                                                Generation and decode use Metal Performance Shaders. Unified memory is used automatically.
+                                            </p>
                                         </div>
+                                    ) : (
+                                        <p className={darkMode ? 'text-[#b3b3b3]' : 'text-slate-600'}>
+                                            Running on CPU. Apple Metal (MPS) is available only on supported Macs.
+                                        </p>
                                     )}
                                 </div>
                             </div>
 
-                            {/* Configuration Section */}
+                            {/* Memory (MPS: optional 4-bit for low unified memory) */}
                             <div className="mb-6">
                                 <h3 className={`text-sm font-semibold uppercase tracking-wide mb-3 ${
                                     darkMode ? 'text-white' : 'text-slate-900'
                                 }`}>
-                                    Configuration
+                                    Memory
                                 </h3>
                                 <div className="space-y-4">
-                                    {/* 4-bit Quantization */}
                                     <div>
                                         <label className={labelClass}>4-bit Quantization</label>
                                         <select
                                             value={settings.quantization_4bit}
-                                            onChange={(e) => {
-                                                const newValue = e.target.value;
-                                                if (newValue !== 'false' && settings.torch_compile) {
-                                                    // Enabling 4-bit - disable torch.compile
-                                                    setSettings({
-                                                        ...settings,
-                                                        quantization_4bit: newValue,
-                                                        torch_compile: false
-                                                    });
-                                                } else {
-                                                    setSettings({ ...settings, quantization_4bit: newValue });
-                                                }
-                                            }}
+                                            onChange={(e) => setSettings({ ...settings, quantization_4bit: e.target.value })}
                                             className={selectClass}
                                         >
-                                            <option value="auto">Auto (based on VRAM)</option>
-                                            <option value="true">Enabled</option>
-                                            <option value="false">Disabled (required for torch.compile)</option>
-                                        </select>
-                                        <p className={`text-xs mt-1 ${darkMode ? 'text-[#6a6a6a]' : 'text-slate-400'}`}>
-                                            Reduces VRAM usage from ~11GB to ~3GB
-                                        </p>
-                                    </div>
-
-                                    {/* Sequential Offload */}
-                                    <div>
-                                        <label className={labelClass}>Sequential Offload</label>
-                                        <select
-                                            value={settings.sequential_offload}
-                                            onChange={(e) => setSettings({ ...settings, sequential_offload: e.target.value })}
-                                            className={selectClass}
-                                        >
-                                            <option value="auto">Auto (based on VRAM)</option>
+                                            <option value="auto">Auto</option>
                                             <option value="true">Enabled</option>
                                             <option value="false">Disabled</option>
                                         </select>
                                         <p className={`text-xs mt-1 ${darkMode ? 'text-[#6a6a6a]' : 'text-slate-400'}`}>
-                                            Swaps models to fit in 12GB VRAM (adds ~70s overhead)
+                                            Lowers memory use on Macs with limited unified memory
                                         </p>
                                     </div>
-
-                                    {/* torch.compile */}
-                                    <div>
-                                        <div className="flex items-center justify-between">
-                                            <label className={labelClass}>torch.compile</label>
-                                            <button
-                                                onClick={() => {
-                                                    const newCompile = !settings.torch_compile;
-                                                    if (newCompile) {
-                                                        // Enabling torch.compile - disable 4-bit quantization
-                                                        setSettings({
-                                                            ...settings,
-                                                            torch_compile: true,
-                                                            quantization_4bit: 'false'
-                                                        });
-                                                    } else {
-                                                        setSettings({ ...settings, torch_compile: false });
-                                                    }
-                                                }}
-                                                className={`relative w-11 h-6 rounded-full transition-colors ${
-                                                    settings.torch_compile
-                                                        ? darkMode ? 'bg-[#1DB954]' : 'bg-cyan-500'
-                                                        : darkMode ? 'bg-[#383838]' : 'bg-slate-300'
-                                                }`}
-                                            >
-                                                <span className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-transform ${
-                                                    settings.torch_compile ? 'translate-x-5' : ''
-                                                }`} />
-                                            </button>
-                                        </div>
-                                        <p className={`text-xs mt-1 ${darkMode ? 'text-[#6a6a6a]' : 'text-slate-400'}`}>
-                                            ~2x faster inference (requires full precision)
-                                        </p>
-                                        {settings.torch_compile && (
-                                            <>
-                                                {/* Warning for older GPUs */}
-                                                {gpuStatus?.gpus && Object.values(gpuStatus.gpus).some(
-                                                    (gpu: { compute_capability?: number }) => gpu.compute_capability && gpu.compute_capability < 7.5
-                                                ) && (
-                                                    <div className={`mt-2 p-2 rounded text-xs ${
-                                                        darkMode ? 'bg-amber-900/30 text-amber-400' : 'bg-amber-50 text-amber-700'
-                                                    }`}>
-                                                        <strong>⚠ Warning:</strong> Your GPU (SM {
-                                                            Object.values(gpuStatus.gpus).find(
-                                                                (gpu: { compute_capability?: number }) => gpu.compute_capability && gpu.compute_capability < 7.5
-                                                            )?.compute_capability
-                                                        }) is older than recommended for torch.compile.
-                                                        torch.compile works best on Turing (SM 7.5+) or newer GPUs (RTX 20xx/30xx/40xx, A100, etc.).
-                                                        On older GPUs, compilation may be very slow or fail. The backend will auto-disable it for stability.
-                                                    </div>
-                                                )}
-                                                <div className={`mt-2 p-2 rounded text-xs ${
-                                                    darkMode ? 'bg-blue-900/20 text-blue-400' : 'bg-blue-50 text-blue-700'
-                                                }`}>
-                                                    <strong>Note:</strong> 4-bit quantization has been disabled for torch.compile compatibility.
-                                                    First generation will take 5-10 minutes to compile. Subsequent runs will be ~2x faster.
-                                                    Requires ~11GB VRAM without quantization.
-                                                </div>
-                                            </>
-                                        )}
-                                    </div>
-
-                                    {/* torch.compile mode */}
-                                    {settings.torch_compile && (
-                                        <div>
-                                            <label className={labelClass}>Compile Mode</label>
-                                            <select
-                                                value={settings.torch_compile_mode}
-                                                onChange={(e) => setSettings({ ...settings, torch_compile_mode: e.target.value })}
-                                                className={selectClass}
-                                            >
-                                                <option value="default">Default</option>
-                                                <option value="reduce-overhead">Reduce Overhead</option>
-                                                <option value="max-autotune">Max Autotune</option>
-                                            </select>
-                                        </div>
-                                    )}
                                 </div>
                             </div>
 

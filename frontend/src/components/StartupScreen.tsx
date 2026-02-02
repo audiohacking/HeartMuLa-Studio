@@ -126,15 +126,15 @@ export function StartupScreen({ status, darkMode, gpuStatus }: StartupScreenProp
                     </div>
                 )}
 
-                {/* GPU Info */}
-                {gpuStatus && gpuStatus.cuda_available && (
+                {/* GPU / Acceleration Info */}
+                {gpuStatus && (gpuStatus.mps_available || gpuStatus.cuda_available) && (
                     <div className={`w-full p-4 rounded-lg ${
                         darkMode ? 'bg-[#181818] border border-[#282828]' : 'bg-white border border-slate-200 shadow-sm'
                     }`}>
                         <div className={`text-xs uppercase tracking-wide mb-2 ${
                             darkMode ? 'text-[#b3b3b3]' : 'text-slate-500'
                         }`}>
-                            Detected Hardware
+                            Acceleration
                         </div>
                         {gpuStatus.gpus.map((gpu) => (
                             <div key={gpu.index} className="flex items-center gap-2 mb-1 last:mb-0">
@@ -146,7 +146,7 @@ export function StartupScreen({ status, darkMode, gpuStatus }: StartupScreenProp
                                 <span className={`text-xs px-1.5 py-0.5 rounded ${
                                     darkMode ? 'bg-[#282828] text-[#b3b3b3]' : 'bg-slate-100 text-slate-600'
                                 }`}>
-                                    {gpu.vram_gb} GB
+                                    {typeof gpu.vram_gb === 'string' ? gpu.vram_gb : `${gpu.vram_gb} GB`}
                                 </span>
                                 {gpu.supports_flash_attention && (
                                     <span className={`text-xs px-1.5 py-0.5 rounded ${
